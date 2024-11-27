@@ -1,0 +1,23 @@
+name: Validate Branch Name
+
+on:
+  pull_request:
+    types:
+      - opened
+      - synchronize
+      - reopened
+
+jobs:
+  validate-branch-name:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Validate branch name
+        run: |
+          BRANCH_NAME="${{ github.event.pull_request.head.ref }}"
+          echo "Validating branch name: ${BRANCH_NAME}"
+          
+          if [[ ! "${BRANCH_NAME}" =~ ^release/v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "Branch name '${BRANCH_NAME}' does not match the pattern 'release/vX.Y.Z'."
+            exit 1
+          fi
+          echo "Branch name is valid."
