@@ -20,7 +20,7 @@ func Test_Vendor(t *testing.T) {
 		stringErr string
 	}{
 		{
-			name: "only local without MFlag",
+			name: "local",
 			setup: func(t *testing.T) {
 				wd, err := os.Getwd()
 				require.NoError(t, err)
@@ -38,44 +38,12 @@ func Test_Vendor(t *testing.T) {
 			check: func(t *testing.T) {
 				wd, err := os.Getwd()
 				require.NoError(t, err)
-				_, err = os.Stat(filepath.Join(wd, "testdata/only-local/internal/pb/api/test/test.pb.go"))
+				_, err = os.Stat(filepath.Join(wd, "testdata/only-local/pkg/api/test/test.pb.go"))
 				require.NoError(t, err)
 				_, err = os.Stat(filepath.Join(wd, "testdata/only-local/.vendorpb/api/test/test.proto"))
 				require.NoError(t, err)
 
-				err = os.RemoveAll(filepath.Join(wd, "testdata/only-local/internal"))
-				require.NoError(t, err)
-				err = os.RemoveAll(filepath.Join(wd, "testdata/only-local/.vendorpb"))
-				require.NoError(t, err)
-			},
-			wantErr: false,
-		},
-		{
-			name: "only local with MFlag",
-			setup: func(t *testing.T) {
-				wd, err := os.Getwd()
-				require.NoError(t, err)
-
-				wdFunc = func() (string, error) {
-					return filepath.Join(wd, "testdata/only-local"), nil
-				}
-
-				err = Vendor.Flags().Set("buf", "buf")
-				require.NoError(t, err)
-				err = Vendor.Flags().Set("project", "only-local")
-				require.NoError(t, err)
-				err = Vendor.Flags().Set("template", "buf.gen.2.yaml")
-				require.NoError(t, err)
-			},
-			check: func(t *testing.T) {
-				wd, err := os.Getwd()
-				require.NoError(t, err)
-				_, err = os.Stat(filepath.Join(wd, "testdata/only-local/internal/pb/api/test/2/test.pb.go"))
-				require.NoError(t, err)
-				_, err = os.Stat(filepath.Join(wd, "testdata/only-local/.vendorpb/api/test/test.proto"))
-				require.NoError(t, err)
-
-				err = os.RemoveAll(filepath.Join(wd, "testdata/only-local/internal"))
+				err = os.RemoveAll(filepath.Join(wd, "testdata/only-local/pkg"))
 				require.NoError(t, err)
 				err = os.RemoveAll(filepath.Join(wd, "testdata/only-local/.vendorpb"))
 				require.NoError(t, err)
@@ -147,26 +115,6 @@ func Test_Vendor(t *testing.T) {
 			stringErr: "parse mFlags: invalid option",
 		},
 		{
-			name: "invalid MFlag dst",
-			setup: func(t *testing.T) {
-				wd, err := os.Getwd()
-				require.NoError(t, err)
-
-				wdFunc = func() (string, error) {
-					return filepath.Join(wd, "testdata/only-local"), nil
-				}
-
-				err = Vendor.Flags().Set("buf", "buf")
-				require.NoError(t, err)
-				err = Vendor.Flags().Set("project", "only-local")
-				require.NoError(t, err)
-				err = Vendor.Flags().Set("template", "buf.gen.4.yaml")
-				require.NoError(t, err)
-			},
-			wantErr:   true,
-			stringErr: "migrate: invalid destination",
-		},
-		{
 			name: "pbtree not found",
 			setup: func(t *testing.T) {
 				wd, err := os.Getwd()
@@ -221,15 +169,14 @@ func Test_Vendor(t *testing.T) {
 
 				err = Vendor.Flags().Set("buf", "buf")
 				require.NoError(t, err)
-				err = Vendor.Flags().Set("project", "only-local")
+				err = Vendor.Flags().Set("project", "testdata/only-local")
 				require.NoError(t, err)
 				err = Vendor.Flags().Set("template", "buf.gen.1.yaml")
 				require.NoError(t, err)
 				err = Vendor.Flags().Set("config", "pbtree.2.yaml")
 				require.NoError(t, err)
 			},
-			wantErr:   true,
-			stringErr: "vendor proto: google/protobuf/wrappers.proto: inappropriate fetcher",
+			wantErr: false,
 		},
 	}
 

@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package test;
 
-option go_package = "gitlab.com/gosharmot/test/pkg/test;test";
+option go_package = "github.com/gosharmot/pbtree/internal/cmd/testdata/only-local/pkg/api/test";
 
 service Test {
   rpc Call(msg) returns (msg) {}
