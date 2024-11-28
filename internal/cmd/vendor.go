@@ -105,7 +105,7 @@ func vendorF(cmd *cobra.Command, _ []string) error {
 		fetchers = append(fetchers, fetcher.NewGithub(token))
 	}
 
-	treeManager := tree.New(fetcher.NewMultiFetcher(fetchers...), wd, vendorDir, outputDir, projectRepo)
+	treeManager := tree.New(fetcher.NewCompoundFetcher(fetchers...), wd, vendorDir, outputDir, projectRepo)
 
 	clog.Info("Vendoring...")
 	templateTargets, err := treeManager.Vendor(ctx, tree.VendorCommand{

@@ -14,17 +14,17 @@ type Fetcher interface {
 	Fetch(ctx context.Context, module string) (io.ReadCloser, error)
 }
 
-// MultiFetcher is a combination of different proto providers
-type MultiFetcher struct {
+// CompoundFetcher is a combination of different proto providers
+type CompoundFetcher struct {
 	fetchers []Fetcher
 }
 
-// NewMultiFetcher return MultiFetcher
-func NewMultiFetcher(fetchers ...Fetcher) Fetcher {
-	return MultiFetcher{fetchers: fetchers}
+// NewCompoundFetcher return CompoundFetcher
+func NewCompoundFetcher(fetchers ...Fetcher) Fetcher {
+	return CompoundFetcher{fetchers: fetchers}
 }
 
-func (m MultiFetcher) Fetch(ctx context.Context, module string) (io.ReadCloser, error) {
+func (m CompoundFetcher) Fetch(ctx context.Context, module string) (io.ReadCloser, error) {
 	for _, fetcher := range m.fetchers {
 		fetched, err := fetcher.Fetch(ctx, module)
 		if err != nil {
