@@ -15,7 +15,8 @@ import (
 )
 
 var (
-	importRegexp = regexp.MustCompile(`^import\s*"(.*/.*[.]proto)".*;$`)
+	importRegexp    = regexp.MustCompile(`^import\s*"(.*/.*[.]proto)".*;$`)
+	goPackageRegexp = regexp.MustCompile(`^option go_package = "(.*)";$`)
 )
 
 type TemplateTargets map[string][]Target
@@ -70,24 +71,28 @@ func (t Tree) Vendor(ctx context.Context, command VendorCommand) (TemplateTarget
 	deps := make([]string, 0, 20)
 
 	for _, proto := range command.Config.LocalProto {
-		target := NewTarget(proto, command.MFlags[filepath.Join(t.projectRepo, proto)], command.LocalTemplate, true)
+		dst := command.MFlags[filepath.Join(t.projectRepo, proto)]
+		target := NewTarget(proto, dst, command.LocalTemplate, true)
 		if _, ok := t.vendored[target]; ok {
 			continue
 		}
 		t.vendored[target] = struct{}{}
 
 		eg.Go(func() error {
-			_deps, err := t.vendor(ctx, proto)
+			_deps, goPackage, err := t.vendor(ctx, proto)
 			if err != nil {
 				return fmt.Errorf("%s: %s", proto, err)
 			}
 
-			if len(_deps) == 0 {
+			if len(_deps) == 0 && len(dst) != 0 {
 				return nil
 			}
 
 			mx.Lock()
 			defer mx.Unlock()
+			delete(t.vendored, target)
+			t.vendored[NewTarget(proto, goPackage, command.LocalTemplate, true)] = struct{}{}
+
 			deps = append(deps, _deps...)
 
 			return nil
@@ -101,7 +106,7 @@ func (t Tree) Vendor(ctx context.Context, command VendorCommand) (TemplateTarget
 		}
 		t.vendored[target] = struct{}{}
 		eg.Go(func() error {
-			_deps, err := t.vendor(ctx, proto)
+			_deps, _, err := t.vendor(ctx, proto)
 			if err != nil {
 				return fmt.Errorf("%s: %s", proto, err)
 			}
@@ -140,25 +145,27 @@ func (t Tree) Vendor(ctx context.Context, command VendorCommand) (TemplateTarget
 	return t.Vendor(ctx, command)
 }
 
-func (t Tree) vendor(ctx context.Context, proto string) ([]string, error) {
+func (t Tree) vendor(ctx context.Context, proto string) ([]string, string, error) {
 	imports := make([]string, 0)
+
+	var goPackage string
 
 	fetch, err := t.fetcher.Fetch(ctx, proto)
 	if err != nil {
-		return nil, err
+		return nil, "", err
 	}
 	defer func() { _ = fetch.Close() }()
 
 	dst := filepath.Join(t.wd, t.vendorDir, proto)
 	if dir := filepath.Dir(dst); dir != "" {
 		if err = os.MkdirAll(dir, os.ModePerm); err != nil {
-			return nil, err
+			return nil, "", err
 		}
 	}
 
 	vendor, err := os.Create(dst)
 	if err != nil {
-		return nil, err
+		return nil, "", err
 	}
 	defer func() { _ = vendor.Close() }()
 
@@ -166,7 +173,11 @@ func (t Tree) vendor(ctx context.Context, proto string) ([]string, error) {
 	for scanner.Scan() {
 		line := scanner.Bytes()
 		if _, err = vendor.Write(append(line, []byte("\n")...)); err != nil {
-			return nil, err
+			return nil, "", err
+		}
+
+		if goPackageRegexp.Match(line) {
+			goPackage = string(goPackageRegexp.ReplaceAll(line, []byte("$1")))
 		}
 
 		if importRegexp.Match(line) {
@@ -174,5 +185,5 @@ func (t Tree) vendor(ctx context.Context, proto string) ([]string, error) {
 		}
 	}
 
-	return imports, nil
+	return imports, goPackage, nil
 }

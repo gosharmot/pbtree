@@ -34,6 +34,7 @@ go install google.golang.org/protobuf/cmd/protoc-gen-go@v1.28.1 && \
 go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@v1.2.0 && \
 go install github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-grpc-gateway@v2.18.1 && \
 go install github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-openapiv2@v2.18.1 && \
+go install github.com/gosharmot/pbtree/cmd/pbtree@latest && \
 pbtree init github.com/me/awesome-project && \
 pbtree add awesome-service --project=github.com/me/awesome-project && \
 pbtree vendor --project=github.com/me/awesome-project --token=<your github api token> && \
@@ -63,14 +64,12 @@ After this your project will have a similar structure:
 │   ├── protoc-gen-go-grpc
 │   ├── protoc-gen-grpc-gateway
 │   └── protoc-gen-openapiv2
-├── internal
-│   └── pb
-│       └── api
-│           └── awesome-service
-│               ├── awesome_service.pb.go
-│               ├── awesome_service.pb.gw.go
-│               ├── awesome_service.swagger.json
-│               └── awesome_service_grpc.pb.go
+├── pkg
+│   └── awesome-service
+│    ├── awesome_service.pb.go
+│    ├── awesome_service.pb.gw.go
+│    ├── awesome_service.swagger.json
+│    └── awesome_service_grpc.pb.go
 ├── buf.gen.yaml
 └── pbtree.yaml
 ```
@@ -254,11 +253,9 @@ After generation, you will have:
 ├── api
 │   └── awesome-service
 │       └── awesome_service.proto
-├── internal
-│   └── pb
-│       ├── api
-│       │   └── awesome-service
-│       │       └── awesome_service.pb.go
+├── pkg
+│   └── awesome-service
+│     └── awesome_service.pb.go
 ├── buf.gen.yaml
 └── pbtree.yaml
 ```
@@ -303,11 +300,11 @@ You will have:
 │       └── awesome_service.proto
 ├── internal
 │   └── pb
-│       ├── api
-│       │   └── awesome-service
-│       │       └── awesome_service.pb.go
 │       ├── example
 │       │   └── example.pb.go
+├── pkg
+│   └── awesome-service
+│     └── awesome_service.pb.go
 ├── buf.gen.yaml
 └── pbtree.yaml
 ```

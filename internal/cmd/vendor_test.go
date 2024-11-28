@@ -38,12 +38,12 @@ func Test_Vendor(t *testing.T) {
 			check: func(t *testing.T) {
 				wd, err := os.Getwd()
 				require.NoError(t, err)
-				_, err = os.Stat(filepath.Join(wd, "testdata/only-local/internal/pb/api/test/test.pb.go"))
+				_, err = os.Stat(filepath.Join(wd, "testdata/only-local/pkg/api/test/test.pb.go"))
 				require.NoError(t, err)
 				_, err = os.Stat(filepath.Join(wd, "testdata/only-local/.vendorpb/api/test/test.proto"))
 				require.NoError(t, err)
 
-				err = os.RemoveAll(filepath.Join(wd, "testdata/only-local/internal"))
+				err = os.RemoveAll(filepath.Join(wd, "testdata/only-local/pkg"))
 				require.NoError(t, err)
 				err = os.RemoveAll(filepath.Join(wd, "testdata/only-local/.vendorpb"))
 				require.NoError(t, err)
