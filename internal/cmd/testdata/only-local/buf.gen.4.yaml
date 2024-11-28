@@ -1,0 +1,9 @@
+version: v1
+plugins:
+  - name: go
+    path: protoc-gen-go
+    out: .
+    opt:
+      - Monly-local/api/test/test.proto=invalid/internal/pb/test
+      - paths=source_relative
+    strategy: directory

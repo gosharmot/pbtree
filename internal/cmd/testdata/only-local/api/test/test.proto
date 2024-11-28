@@ -1,0 +1,13 @@
+syntax = "proto3";
+
+package test;
+
+option go_package = "github.com/gosharmot/pbtree/internal/cmd/testdata/only-local/pkg/api/test";
+
+service Test {
+  rpc Call(msg) returns (msg) {}
+}
+
+message msg {
+  string msg = 1;
+}
