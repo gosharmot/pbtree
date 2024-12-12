@@ -1,0 +1,40 @@
+name: Create Tag from branch name
+
+on:
+  pull_request:
+    branches: ['releases/**']
+    types: [closed]
+
+jobs:
+  create-tag:
+    if: github.event.pull_request.merged == true && github.event.pull_request.base.ref == 'master'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Extract source branch name
+        id: extract_branch
+        run: |
+          BRANCH_NAME="${{ github.event.pull_request.head.ref }}"
+          echo "Branch name: ${BRANCH_NAME}"
+          
+          # Ensure the branch name matches the pattern release/vX.Y.Z
+          if [[ "${BRANCH_NAME}" =~ ^release/v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            TAG_NAME=$(echo "${BRANCH_NAME}" | sed 's#release/##')
+            echo "TAG_NAME=${TAG_NAME}" >> $GITHUB_ENV
+          else
+            echo "Branch name does not match the pattern 'release/vX.Y.Z'. Skipping tag creation."
+            exit 0
+          fi
+
+      - name: Check out the repository
+        uses: actions/checkout@v4
+
+      - name: Set up Git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Create and push tag
+        if: env.TAG_NAME
+        run: |
+          git tag "${TAG_NAME}"
+          git push origin "${TAG_NAME}"

@@ -1,0 +1,15 @@
+syntax = "proto3";
+
+package test;
+
+option go_package = "github.com/gosharmot/pbtree/internal/cmd/testdata/only-local/.vendorpb/api/test2";
+
+import "google/protobuf/wrappers.proto";
+
+service Test {
+  rpc Call(msg) returns (msg) {}
+}
+
+message msg {
+  string msg = 1;
+}
